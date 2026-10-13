@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module.js';
+import { TransformResponeInterceptor } from './interceptor/transform-response/transform-response.interceptor.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,6 +16,9 @@ async function bootstrap() {
         enableImplicitConversion: true, // Mengaktifkan konversi tipe implisit
       },
     }));
+
+    app.useGlobalInterceptors(new TransformResponeInterceptor());
+
   await app.listen(process.env.PORT ?? 3000);
 }
 await bootstrap();
