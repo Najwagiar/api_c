@@ -1,31 +1,88 @@
-import {Column, CreateDateColumn, DeleteDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn} from "typeorm";
+import {
+  Column,
+  CreateDateColumn,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+} from 'typeorm';
+
+import { CategoryEntity } from '../../categories/entities/categories-entity.js';
+import { PublisherEntity } from '../../publishers/entities/publishers-entity.js';
+import { AuthorEntity } from '../../authors/entities/authors-entity.js';
 
 @Entity('books')
 export class BookEntity {
-    @PrimaryGeneratedColumn('uuid')
-    id: String;
+  // Primary key menggunakan UUID
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({type: 'varchar', length: 64})
-    name: String;
+  // Banyak buku dapat memiliki satu kategori
+  @ManyToOne(() => CategoryEntity, (category) => category.books, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'category_id' })
+  category: CategoryEntity;
 
-    @Column({type: 'varchar', length: 64})
-    author: String;
+  // Banyak buku dapat diterbitkan oleh satu penerbit
+  @ManyToOne(() => PublisherEntity, (publisher) => publisher.books, {
+    nullable: false,
+  })
+  @JoinColumn({ name: 'publisher_id' })
+  publisher: PublisherEntity;
+  
+  // Satu buku dapat ditulis oleh banyak penulis
+@ManyToMany(() => AuthorEntity, (author) => author.books)
+@JoinTable({
+  name: 'book_authors',
+  joinColumn: {
+    name: 'book_id',
+    referencedColumnName: 'id',
+  },
+  inverseJoinColumn: {
+    name: 'author_id',
+    referencedColumnName: 'id',
+  },
+})
+authors: AuthorEntity[];
 
-    @Column({type: 'varchar'})
-    isbn: String;
+  // Judul buku
+  @Column({ type: 'varchar', length: 30 })
+  title: string;
 
-    @Column({type: 'int'})
-    publishedYear: Number;
+  // ISBN harus unik untuk setiap buku
+  @Column({ type: 'varchar', length: 45, unique: true })
+  isbn: string;
 
-    @Column({type: 'boolean', default: true})
-    isAvailable: Boolean;
+  // Tahun terbit
+  @Column({ type: 'int', default: 0 })
+  publishedYear: number;
 
-    @CreateDateColumn({name:'created_at'})
-    createdAt: Date;
+  // Status ketersediaan buku
+  @Column({ type: 'boolean', default: true })
+  isAvailable: boolean;
 
-    @UpdateDateColumn({name:'updated_at'})
-    updatedAt: Date;
+  // Harga buku
+  @Column({ type: 'decimal', precision: 12, scale: 2, default: 0 })
+  price: number;
 
-    @DeleteDateColumn({name:'deleted_at'})
-    deletedAt: Date;
+  // Jumlah stok buku
+  @Column({ type: 'int', default: 0 })
+  stock: number;
+
+  // Waktu data dibuat
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: Date;
+
+  // Waktu data diperbarui
+  @UpdateDateColumn({ name: 'updated_at' })
+  updatedAt: Date;
+
+  // Waktu penghapusan secara soft delete
+  @DeleteDateColumn({ name: 'deleted_at', nullable: true })
+  deletedAt: Date | null;
 }
